@@ -3,14 +3,12 @@ import paho.mqtt.client as mqttcli
 import paho.mqtt.publish as publish
 import time
 import sys, os
-from datetime import datetime, timedelta
+from datetime import datetime
 import psycopg2
-import numpy as np
-from pprint import pprint as pp
-import copy
 import json
 
-from settings import IP_irl001, test_message, db_ip
+from settings import IP_irl001, test_message, db_ip, wally_topic, test_message2
+
 
 def db_connection(dbname):
     try:
@@ -23,24 +21,46 @@ def db_connection(dbname):
         sys.exit(0)
 
 
-def sqlquery_wite_data(ts, message):
+def sqlquery_wite_data_all(ts, message):
 
     SQLtext = ""
     SQLtext += "INSERT INTO public.irldata_all (time, string) VALUES ('"+str(ts)+"', '"+str(message)+"')"
     return SQLtext
 
 
-def on_message_writetodb(client, userdata, message):
-    json1_str = message.payload.decode("utf-8")
-    #json1_data = json.loads(json1_str)
+def sqlquery_wite_data_wally(time, field1, field2, field3, field4, field5, field6, field7, field8, smx_ts):
 
-    SQLtext_write = sqlquery_wite_data(datetime.now(), json1_str)
+    SQLtext = ""
+    SQLtext += "INSERT INTO public.irldata_wally (time, frequency, V_L1L2_rms, V_L1N_rms, V_L2L3_rms, V_L2N_rms, " \
+               "V_L3L1_rms, V_L3N_rms, V_L4N_rms, smx_ts) " \
+               "VALUES ('"+str(time)+"', '"+str(field1)+"', '"+str(field2)+"', '"+str(field3)+"', '"+str(field4)+"', " \
+                "'"+str(field5)+"', '"+str(field6)+"', '"+str(field7)+"', '"+str(field8)+"', '"+str(smx_ts)+"')"
+    return SQLtext
+
+
+def on_message_writetodb(client, userdata, message):
+
+    json1_str = message.payload.decode("utf-8")
+    json1_data = json.loads(json1_str)
+
+    ts = datetime.now()
+
+    SQLtext_write_wally = sqlquery_wite_data_wally(ts,
+                                                    str(json1_data["Frequency"]["value"]), #field1 etc.
+                                                    str(json1_data["Rms Voltage L1-L2"]["value"]),
+                                                    str(json1_data["Rms Voltage L1-N"]["value"]),
+                                                    str(json1_data["Rms Voltage L2-L3"]["value"]),
+                                                    str(json1_data["Rms Voltage L2-N"]["value"]),
+                                                    str(json1_data["Rms Voltage L3-L1"]["value"]),
+                                                    str(json1_data["Rms Voltage L3-N"]["value"]),
+                                                    str(json1_data["Rms Voltage L4-N"]["value"]), # field8
+                                                   smx_ts=None)
 
     conn = db_connection("irldb")
     cursor = conn.cursor()
 
     try:
-        cursor.execute(SQLtext_write)
+        cursor.execute(SQLtext_write_wally)
         conn.commit()
     except psycopg2.OperationalError as e:
         print('Unable to execute query!\n{0}').format(e)
@@ -49,18 +69,20 @@ def on_message_writetodb(client, userdata, message):
         print('Data written in DB.')
         conn.close()
 
+
 def storedata():
 
     vm = mqttcli.Client()
     vm.on_message = on_message_writetodb
     vm.connect(IP_irl001)
     vm.loop_start()
-    vm.subscribe([("#", 0)])
+    vm.subscribe([(wally_topic, 0)])
 
     print("1... waiting for data...")
-    time.sleep(2)
+    time.sleep(0.6)
     vm.loop_stop()
+
 
 while True:
     storedata()
-    time.sleep(1)
+    time.sleep(0.4)
