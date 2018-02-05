@@ -46,15 +46,15 @@ def on_message_writetodb(client, userdata, message):
     ts = datetime.now()
 
     SQLtext_write_wally = sqlquery_wite_data_wally(ts,
-                                                    str(json1_data["Frequency"]["value"]), #field1 etc.
-                                                    str(json1_data["Rms Voltage L1-L2"]["value"]),
-                                                    str(json1_data["Rms Voltage L1-N"]["value"]),
-                                                    str(json1_data["Rms Voltage L2-L3"]["value"]),
-                                                    str(json1_data["Rms Voltage L2-N"]["value"]),
-                                                    str(json1_data["Rms Voltage L3-L1"]["value"]),
-                                                    str(json1_data["Rms Voltage L3-N"]["value"]),
-                                                    str(json1_data["Rms Voltage L4-N"]["value"]), # field8
-                                                   smx_ts=None)
+                                                    str(json1_data["wallya1"]["Frequency"]["value"]), #field1 etc.
+                                                    str(json1_data["wallya1"]["Rms Voltage L1-L2"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L1-N"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L2-L3"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L2-N"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L3-L1"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L3-N"]["value"]),
+                                                    str(json1_data["wallya1"]["Rms Voltage L4-N"]["value"]), # field8
+                                                    str(json1_data["SysDateTimeUTC"]))
 
     conn = db_connection("irldb")
     cursor = conn.cursor()

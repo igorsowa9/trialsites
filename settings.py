@@ -6,4 +6,4 @@ test_message2 = '{"Frequency":{"unit":"Hz","value":"049.947"},"Rms Voltage L1-L2
 
 db_ip = "137.226.133.186"
 
-wally_topic = "wally/Values"
+wally_topic = "SUCCESS/NORM/ESB001/wally/Values"
