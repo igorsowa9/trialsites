@@ -106,11 +106,11 @@ def storedataRepeatedly():
         time.sleep(0.4)
 
 archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
-shutil.copyfile("logfile.log", archive_name)
-shutil.make_archive(archive_name, "zip")
-os.remove(archive_name)
+shutil.copy("logfile.log", archive_name)
+#shutil.make_archive(archive_name, "zip")
+#os.remove(archive_name)
 
 logging.basicConfig(filename='logfile.log', level=logging.INFO)
 logging.warning(" When: " + str(datetime.now()) + " --- " + "Initiate logfile")
 
-storedataRepeatedly()
+#storedataRepeatedly()
