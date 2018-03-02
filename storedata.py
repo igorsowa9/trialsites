@@ -6,19 +6,22 @@ import sys, os
 from datetime import datetime
 import psycopg2
 import json
+import logging
+import shutil
 
-from settings import IP_irl001, test_message, db_ip, wally_topic, test_message2
+
+from settings import IP_irl001, test_message, db_ip, wally_topic, test_message2, log_inf
 
 
 def db_connection(dbname):
     try:
         global conn
         conn = psycopg2.connect("dbname='" + dbname + "' user='postgres' host="+db_ip+" password='postgres'")
-        print("DB: " + dbname + " connected.")
+        logging.warning(" When: " + str(datetime.now()) + " --- " + " DB: " + dbname + " connected.")
         return(conn)
     except:
+        logging.error(" When: " + str(datetime.now()) + " --- " + "I am unable to connect to the database.")
         print("I am unable to connect to the database. STOP.")
-        sys.exit(0)
 
 
 def sqlquery_wite_data_all(ts, message):
@@ -41,7 +44,10 @@ def sqlquery_wite_data_wally(time, field1, field2, field3, field4, field5, field
 def on_message_writetodb(client, userdata, message):
 
     json1_str = message.payload.decode("utf-8")
-    json1_data = json.loads(json1_str)
+    try:
+        json1_data = json.loads(json1_str)
+    except json.decoder.JSONDecodeError as e:
+        logging.error(" When: " + str(datetime.now()) + " --- " + 'Json decode error: ' + str(e))
 
     ts = datetime.now()
 
@@ -63,14 +69,14 @@ def on_message_writetodb(client, userdata, message):
         cursor.execute(SQLtext_write_wally)
         conn.commit()
     except psycopg2.OperationalError as e:
-        print('Unable to execute query!\n{0}').format(e)
-        sys.exit(1)
+        logging.warning(" When: " + str(datetime.now()) + " --- " + "Unable to execute query! " + format(e))
     finally:
+        if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + 'Data written in DB.')
         print('Data written in DB.')
         conn.close()
 
 
-def storedata():
+def storedataAttempt():
 
     vm = mqttcli.Client()
     vm.on_message = on_message_writetodb
@@ -78,11 +84,33 @@ def storedata():
     vm.loop_start()
     vm.subscribe([(wally_topic, 0)])
 
-    print("1... waiting for data...")
+    print("Waiting for data...")
+    if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
     time.sleep(0.6)
     vm.loop_stop()
 
 
-while True:
-    storedata()
-    time.sleep(0.4)
+def storedataOnce():
+    while True:
+        try:
+            storedataAttempt()
+        except:
+            logging.warning(" When: " + str(datetime.now()) + " --- " + "Except in storedataOnce()")
+            pass
+        else:
+            break
+
+def storedataRepeatedly():
+    while True:
+        storedataOnce()
+        time.sleep(0.4)
+
+archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
+shutil.copyfile("logfile.log", archive_name)
+shutil.make_archive(archive_name, "zip")
+os.remove(archive_name)
+
+logging.basicConfig(filename='logfile.log', level=logging.INFO)
+logging.warning(" When: " + str(datetime.now()) + " --- " + "Initiate logfile")
+
+storedataRepeatedly()
