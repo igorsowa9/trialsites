@@ -113,4 +113,4 @@ shutil.copy("logfile.log", archive_name)
 logging.basicConfig(filename='logfile.log', level=logging.INFO)
 logging.warning(" When: " + str(datetime.now()) + " --- " + "Initiate logfile")
 
-#storedataRepeatedly()
+storedataRepeatedly()
