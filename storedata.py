@@ -32,14 +32,15 @@ def sqlquery_wite_data_all(ts, message):
     return SQLtext
 
 
-def sqlquery_wite_data_wally(wally_name, lab_ts, field1, field2, field3, field4, field5, field6, field7, field8, field9, smx_ts, smx_utc):
+def sqlquery_wite_data_wally(wally_name, lab_ts, field1, field2, field3, field4, field5, field6, field7, field8,
+                             field9, smx_ts, smx_utc, latency_s):
 
     SQLtext = ""
     SQLtext += "INSERT INTO public.irldata_"+wally_name+" (lab_ts, frequency, instfrequency, V_L1L2_rms, V_L1N_rms, " \
-                                                        "V_L2L3_rms, V_L2N_rms, V_L3L1_rms, V_L3N_rms, V_L4N_rms, smx_ts, smx_utc) " \
+                                                        "V_L2L3_rms, V_L2N_rms, V_L3L1_rms, V_L3N_rms, V_L4N_rms, smx_ts, smx_utc, latency) " \
                "VALUES ('"+str(lab_ts)+"', '"+str(field1)+"', '"+str(field2)+"', '"+str(field3)+"', '"+str(field4)+"', " \
                 "'"+str(field5)+"', '"+str(field6)+"', '"+str(field7)+"', '"+str(field8)+"', '"+str(field9)+"', " \
-                "'"+str(smx_ts)+"', '"+str(smx_utc)+"'); "
+                "'"+str(smx_ts)+"', '"+str(smx_utc)+"', '"+ str(latency_s)+"'); "
     return SQLtext
 
 
@@ -58,7 +59,17 @@ def on_message_writetodb(client, userdata, message):
         json1_data = None
         wally_name = None
 
+    # calculate latency
     lab_ts = datetime.now()
+    lab_ts_utc = datetime.utcnow()
+    smx_ts = json1_data["SMXtimestamp"]
+
+    #lab_ts_dt = datetime.strptime(str(lab_ts), '%Y-%m-%d %H:%M:%S.%f')
+    smx_ts_dt = datetime.strptime(str(smx_ts), '%Y/%m/%d %H:%M:%S:%f')
+
+    latency = lab_ts_utc - smx_ts_dt
+    latency_sec = latency.microseconds / 10e5
+
 
     SQLtext_write_wally = sqlquery_wite_data_wally(wally_name, lab_ts,
                                                     str(json1_data[wally_name]["Frequency"]["value"]), #field1 etc.
@@ -71,7 +82,8 @@ def on_message_writetodb(client, userdata, message):
                                                     str(json1_data[wally_name]["Rms Voltage L3-N"]["value"]),
                                                     str(json1_data[wally_name]["Rms Voltage L4-N"]["value"]), # field9
                                                     str(json1_data["SMXtimestamp"]),
-                                                    str(json1_data["SysDateTimeUTC"]))
+                                                    str(json1_data["SysDateTimeUTC"]),
+                                                    str(latency_sec))
 
     conn = db_connection("irldb")
     cursor = conn.cursor()
