@@ -8,8 +8,6 @@ import psycopg2
 import json
 import logging
 import shutil
-from multiprocessing import Pool
-
 
 from settings import IP_irl001, test_message, db_ip, wallya1_topic, wallya2_topic, test_message2, log_inf
 
@@ -18,7 +16,7 @@ def db_connection(dbname):
     try:
         global conn
         conn = psycopg2.connect("dbname='" + dbname + "' user='postgres' host="+db_ip+" password='postgres'")
-        logging.info(" When: " + str(datetime.now()) + " --- " + " DB: " + dbname + " connected.")
+        if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + " DB: " + dbname + " connected.")
         return(conn)
     except:
         logging.error(" When: " + str(datetime.now()) + " --- " + "I am unable to connect to the database.")
@@ -50,8 +48,8 @@ def on_message_writetodb(client, userdata, message):
         wally_name = 'wallya1'
     elif message.topic == wallya2_topic:
         wally_name = 'wallya2'
-
     json1_str = message.payload.decode("utf-8")
+
     try:
         json1_data = json.loads(json1_str)
     except json.decoder.JSONDecodeError as e:
@@ -99,13 +97,16 @@ def on_message_writetodb(client, userdata, message):
         conn.close()
 
 
-def storedataAttempt(topic):
+def storedataAttempt(topics):
 
     vm = mqttcli.Client()
-    vm.on_message = on_message_writetodb
+    #vm.on_message = on_message_writetodb
     vm.connect(IP_irl001)
     vm.loop_start()
-    vm.subscribe([(topic, 0)])
+    vm.subscribe(topics)
+
+    vm.message_callback_add(wallya1_topic, on_message_writetodb)
+    vm.message_callback_add(wallya2_topic, on_message_writetodb)
 
     print("Waiting for data...")
     if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
@@ -115,12 +116,11 @@ def storedataAttempt(topic):
 def storedataOnce():
     while True:
         try:
-            # run in parallel both mqtt subscriptions
-            with Pool(5) as p:
-                storedataAttempt(p.map(storedataAttempt, [wallya1_topic, wallya2_topic]))
+            storedataAttempt([(wallya1_topic, 0), (wallya2_topic, 0)])
 
         except:
-            logging.info(" When: " + str(datetime.now()) + " --- " + "Except in storedataOnce()")
+            print("Unexpected error:", sys.exc_info())
+            logging.error(" When: " + str(datetime.now()) + " --- " + "Error in storedataOnce(): ", sys.exc_info())
             pass
         else:
             break
