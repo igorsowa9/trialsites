@@ -1,11 +1,130 @@
-IP_irl001 = "10.12.0.18"
+import copy
 
-db_ip = "10.12.0.1" # "137.226.133.186"
+db_ip = "10.12.0.1"  # "137.226.133.186"
 
-wallya1_topic = "SUCCESS/NORM/ESB001/wally1/Values"
-wallya2_topic = "SUCCESS/NORM/ESB001/wally2/Values"
+log_inf = True
 
-log_inf = False
+ita005_settings = {"name": "ita005",
+                   "ip": "10.12.0.202",
+                   "mqtt_topics": [('#', 0)],
+                   "msg_labels":
+                       [
+                           [
+                               ".REQUEST_TIME",
+                                ".SERVER_TIME",
+                                "Active Power 3-Phase",
+                                "Apparent Energy",
+                                "Apparent Power 3-Phase",
+                                "Delivered Active Energy",
+                                "Frequency",
+                                "InstFrequency",
+                                "Non-Active Power 3-Phase",
+                                "PF 3-Phase",
+                                "Received Active Energy",
+                                "Rms Current L1-N",
+                                "Rms Voltage L1-N"
+                            ]
+                       ],
+                   "db_name": "itadb",
+                   "db_tables": ["ita005_hq"],
+                   "db_tables_string": ["ita005_string"],
+                   "db_labels":
+                       [
+                           [
+                                "request_time",
+                                "server_time",
+                                "p_3phase",
+                                "apparent_energy",
+                                "s_3phase",
+                                "delivered_active_energy",
+                                "frequency",
+                                "inst_frequency",
+                                "nonactive_power_3phase",
+                                "pf_3phase",
+                                "received_active_energy",
+                                "rms_current_l1n",
+                                "rms_voltage_l1n",
+                                "lab_ts"
+                            ]
+                       ]
+                   }
+
+ita006_settings = copy.deepcopy(ita005_settings)
+ita006_settings.update({'ip': "10.12.0.206"})
+ita006_settings.update({"name": "ita006"})
+ita006_settings.update({"db_tables": ["ita006_scov"]})
+ita006_settings.update({"db_tables_string": ["ita006_string"]})
+
+irl001_settings = {"name": "irl001",
+                   "ip": "10.12.0.18",
+                   "mqtt_topics": [('SUCCESS/NORM/ESB001/wally1/Values', 0),
+                                   ('SUCCESS/NORM/ESB001/wally2/Values', 0)],
+                   "msg_labels":
+                       [
+                           [
+                                "SMXtimestamp",
+                                "SysDateTimeUTC",
+                                ">Frequency",
+                                ">InstFrequency",
+                                ">Rms Voltage L1-L2",
+                                ">Rms Voltage L1-N",
+                                ">Rms Voltage L2-L3",
+                                ">Rms Voltage L2-N",
+                                ">Rms Voltage L3-L1",
+                                ">Rms Voltage L3-N",
+                                ">Rms Voltage L4-N"
+                            ],
+                           [
+                                "SMXtimestamp",
+                                "SysDateTimeUTC",
+                                ">Frequency",
+                                ">InstFrequency",
+                                ">Rms Voltage L1-L2",
+                                ">Rms Voltage L1-N",
+                                ">Rms Voltage L2-L3",
+                                ">Rms Voltage L2-N",
+                                ">Rms Voltage L3-L1",
+                                ">Rms Voltage L3-N",
+                                ">Rms Voltage L4-N"
+                           ]
+                   ],
+                   "db_name": "irldb",
+                   "db_tables": ["irldata_wallya1", "irldata_wallya2"],
+                   "db_labels":
+                       [
+                           [
+                               "smx_ts",
+                               "smx_utc",
+                               "frequency",
+                               "instfrequency",
+                               "v_l1l2_rms",
+                               "v_l1n_rms",
+                                "v_l2l3_rms",
+                               "v_l2n_rms",
+                                "v_l3l1_rms",
+                               "v_l3n_rms",
+                               "v_l4n_rms",
+
+                                "lab_ts",
+                               "latency"
+                           ],
+                            [
+                               "smx_ts",
+                               "smx_utc",
+                               "frequency",
+                               "instfrequency",
+                               "v_l1l2_rms",
+                               "v_l1n_rms",
+                                "v_l2l3_rms",
+                               "v_l2n_rms",
+                                "v_l3l1_rms",
+                               "v_l3n_rms",
+                               "v_l4n_rms",
+
+                                "lab_ts",
+                               "latency"
+                           ]
+                       ]}
 
 test_message = """
 {

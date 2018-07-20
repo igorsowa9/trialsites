@@ -9,45 +9,69 @@ import json
 import logging
 import shutil
 
-from settings import IP_irl001, test_message, db_ip, wallya1_topic, wallya2_topic, test_message2, log_inf
+from settings import *
 
 
 def db_connection(dbname):
     try:
         global conn
         conn = psycopg2.connect("dbname='" + dbname + "' user='postgres' host="+db_ip+" password='postgres'")
-        if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + " DB: " + dbname + " connected.")
-        return(conn)
+        if log_inf:
+            logging.info(" When: " + str(datetime.now()) + " --- " + " DB: " + dbname + " connected.")
+        return conn
     except:
         logging.error(" When: " + str(datetime.now()) + " --- " + "I am unable to connect to the database.")
         print("I am unable to connect to the database. STOP.")
 
 
-def sqlquery_wite_data_all(ts, message):
+def sqlquery_make(tablename, labels, values):
+
+    labels_string = ""
+    for l in range(len(labels)):
+        label = labels[l]
+        if l == 0:
+            labels_string += "(" + str(label) + ", "
+        elif l == len(labels)-1:
+            labels_string += str(label) + ") "
+        else:
+            labels_string += str(label) + ", "
+
+    values_string = ""
+    for v in range(len(values)):
+        value = values[v]
+        if v == 0:
+            values_string += "('" + str(value) + "', "
+        elif v == len(values)-1:
+            values_string += "'" + str(value) + "', '" + str(datetime.utcnow()) + "')"
+        else:
+            values_string += "'" + str(value) + "', "
 
     SQLtext = ""
-    SQLtext += "INSERT INTO public.irldata_all (time, string) VALUES ('"+str(ts)+"', '"+str(message)+"')"
+    SQLtext += "INSERT INTO public." + str(tablename) + str(labels_string) + "VALUES " + values_string + ";"
     return SQLtext
 
 
-def sqlquery_wite_data_wally(wally_name, lab_ts, field1, field2, field3, field4, field5, field6, field7, field8,
-                             field9, smx_ts, smx_utc, latency_s):
-
+def sqlquery_make_string(tablename, value):
     SQLtext = ""
-    SQLtext += "INSERT INTO public.irldata_"+wally_name+" (lab_ts, frequency, instfrequency, V_L1L2_rms, V_L1N_rms, " \
-                                                        "V_L2L3_rms, V_L2N_rms, V_L3L1_rms, V_L3N_rms, V_L4N_rms, smx_ts, smx_utc, latency) " \
-               "VALUES ('"+str(lab_ts)+"', '"+str(field1)+"', '"+str(field2)+"', '"+str(field3)+"', '"+str(field4)+"', " \
-                "'"+str(field5)+"', '"+str(field6)+"', '"+str(field7)+"', '"+str(field8)+"', '"+str(field9)+"', " \
-                "'"+str(smx_ts)+"', '"+str(smx_utc)+"', '"+ str(latency_s)+"'); "
+    SQLtext += "INSERT INTO public." + str(tablename) + " (message_string, lab_ts) " + \
+               "VALUES ('" + value + "' , '" + str(datetime.utcnow()) + "');"
     return SQLtext
 
 
 def on_message_writetodb(client, userdata, message):
 
-    if message.topic == wallya1_topic:
-        wally_name = 'wallya1'
-    elif message.topic == wallya2_topic:
-        wally_name = 'wallya2'
+    print("Received: " + str(userdata))
+
+    if userdata == "irl001":
+        trialsite_settings = irl001_settings
+    elif userdata == "ita005":
+        trialsite_settings = ita005_settings
+    elif userdata == "ita006":
+        trialsite_settings = ita006_settings
+    else:
+        logging.warning(" When: " + str(datetime.now()) + " --- " + "Unrecognized userdata! :" + str(userdata))
+        return
+
     json1_str = message.payload.decode("utf-8")
 
     try:
@@ -55,70 +79,89 @@ def on_message_writetodb(client, userdata, message):
     except json.decoder.JSONDecodeError as e:
         logging.error(" When: " + str(datetime.now()) + " --- " + 'Json decode error: ' + str(e))
         json1_data = None
-        wally_name = None
 
-    # calculate latency
-    lab_ts = datetime.now()
-    lab_ts_utc = datetime.utcnow()
-    smx_ts = json1_data["SMXtimestamp"]
+    SQLtext = ""
+    for ml in range(len(trialsite_settings['msg_labels'])):
+        msg_label = trialsite_settings['msg_labels'][ml]
+        values = []
+        for l in range(len(msg_label)):
+            key = msg_label[l]
+            if key[0] == "." or key == 'SMXtimestamp' or key == 'SysDateTimeUTC':
+                value = json1_data[key]
+            elif key[0] == ">":
+                try:
+                    value = json1_data['wallya1'][key]
+                    value = json1_data['wallya2'][key]
+                except KeyError:
+                    logging.warning(" When: " + str(datetime.now()) + " --- " +
+                                    "Message inconsistent with the assumed structure. Do not write to DB.")
+                    print("Message inconsistent with the assumed structure. Do not write to DB.")
+                    return
+            else:
+                value = json1_data[key]['value']
+            values.append(value)
 
-    #lab_ts_dt = datetime.strptime(str(lab_ts), '%Y-%m-%d %H:%M:%S.%f')
-    smx_ts_dt = datetime.strptime(str(smx_ts), '%Y/%m/%d %H:%M:%S:%f')
+        SQLtext += sqlquery_make(trialsite_settings['db_tables'][ml], trialsite_settings['db_labels'][ml], values)
+        SQLtext += sqlquery_make_string(trialsite_settings['db_tables_string'][ml], str(json1_str))
 
-    latency = lab_ts_utc - smx_ts_dt
-    latency_sec = latency.microseconds / 10e5
+    if userdata == "irl":  # calculate latency
+        lab_ts_utc = datetime.utcnow()
+        smx_ts = json1_data["SMXtimestamp"]
+        # lab_ts_dt = datetime.strptime(str(lab_ts), '%Y-%m-%d %H:%M:%S.%f')
+        smx_ts_dt = datetime.strptime(str(smx_ts), '%Y/%m/%d %H:%M:%S:%f')
+        latency = lab_ts_utc - smx_ts_dt
+        latency_sec = latency.microseconds / 10e5
 
-
-    SQLtext_write_wally = sqlquery_wite_data_wally(wally_name, lab_ts,
-                                                    str(json1_data[wally_name]["Frequency"]["value"]), #field1 etc.
-                                                    str(json1_data[wally_name]["InstFrequency"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L1-L2"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L1-N"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L2-L3"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L2-N"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L3-L1"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L3-N"]["value"]),
-                                                    str(json1_data[wally_name]["Rms Voltage L4-N"]["value"]), # field9
-                                                    str(json1_data["SMXtimestamp"]),
-                                                    str(json1_data["SysDateTimeUTC"]),
-                                                    str(latency_sec))
-
-    conn = db_connection("irldb")
+    conn = db_connection(trialsite_settings['db_name'])
     cursor = conn.cursor()
 
+
     try:
-        cursor.execute(SQLtext_write_wally)
+        cursor.execute(SQLtext)
         conn.commit()
     except psycopg2.OperationalError as e:
         logging.warning(" When: " + str(datetime.now()) + " --- " + "Unable to execute query! " + format(e))
     finally:
-        if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + 'Data written in DB.')
-        print('Data written in DB.')
         conn.close()
+    if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + 'Data written in DB.')
+    print("Data written in DB.")
+    return
 
 
-def storedataAttempt(topics):
+def storedataAttempt(trialsite_settings):
 
-    vm = mqttcli.Client()
-    #vm.on_message = on_message_writetodb
-    vm.connect(IP_irl001)
+    if trialsite_settings['name'] == 'irl001':
+        vm = mqttcli.Client(userdata="irl001")
+    elif trialsite_settings['name'] == 'ita005':
+        vm = mqttcli.Client(userdata="ita005")
+    elif trialsite_settings['name'] == 'ita006':
+        vm = mqttcli.Client(userdata="ita006")
+    else:
+        logging.warning(" When: " + str(datetime.now()) + " --- " + "Unrecognized trialsite settings! :" + str(userdata))
+        return
+
+    # vm.on_message = on_message_writetodb
+    vm.connect(trialsite_settings["ip"])
     vm.loop_start()
-    vm.subscribe(topics)
+    vm.subscribe(trialsite_settings["mqtt_topics"])
 
-    vm.message_callback_add(wallya1_topic, on_message_writetodb)
-    vm.message_callback_add(wallya2_topic, on_message_writetodb)
+    for topic in trialsite_settings["mqtt_topics"]:
+        vm.message_callback_add(topic[0], on_message_writetodb)
 
     print("Waiting for data...")
-    if log_inf == True: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
-    time.sleep(2.5)
+    if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
+    time.sleep(3)
     vm.loop_stop()
+
 
 def storedataOnce():
     while True:
         try:
-            storedataAttempt([(wallya1_topic, 0), (wallya2_topic, 0)])
-
+            storedataAttempt(irl001_settings)
+            storedataAttempt(ita005_settings)
+            storedataAttempt(ita006_settings)
         except:
+
             print("Unexpected error:", sys.exc_info())
             logging.error(" When: " + str(datetime.now()) + " --- " + "Error in storedataOnce(): ", sys.exc_info())
             pass
@@ -128,7 +171,7 @@ def storedataOnce():
 def storedataRepeatedly():
     while True:
         storedataOnce()
-        time.sleep(1)
+        time.sleep(0.2)
 
 archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
 shutil.copy("logfile.log", archive_name)
