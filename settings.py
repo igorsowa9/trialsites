@@ -26,7 +26,7 @@ ita005_settings = {"name": "ita005",
                             ]
                        ],
                    "db_name": "itadb",
-                   "db_tables": ["ita005_hq"],
+                   "db_tables": ["ita005"],
                    "db_tables_string": ["ita005_string"],
                    "db_labels":
                        [
@@ -44,7 +44,8 @@ ita005_settings = {"name": "ita005",
                                 "received_active_energy",
                                 "rms_current_l1n",
                                 "rms_voltage_l1n",
-                                "lab_ts"
+                                "lab_ts",
+                                "latency"
                             ]
                        ]
                    }
@@ -52,8 +53,14 @@ ita005_settings = {"name": "ita005",
 ita006_settings = copy.deepcopy(ita005_settings)
 ita006_settings.update({'ip': "10.12.0.206"})
 ita006_settings.update({"name": "ita006"})
-ita006_settings.update({"db_tables": ["ita006_scov"]})
+ita006_settings.update({"db_tables": ["ita006"]})
 ita006_settings.update({"db_tables_string": ["ita006_string"]})
+
+ita007_settings = copy.deepcopy(ita005_settings)
+ita007_settings.update({'ip': "10.12.0.210"})
+ita007_settings.update({"name": "ita007"})
+ita007_settings.update({"db_tables": ["ita007"]})
+ita007_settings.update({"db_tables_string": ["ita007_string"]})
 
 irl001_settings = {"name": "irl001",
                    "ip": "10.12.0.18",
@@ -64,28 +71,28 @@ irl001_settings = {"name": "irl001",
                            [
                                 "SMXtimestamp",
                                 "SysDateTimeUTC",
-                                ">Frequency",
-                                ">InstFrequency",
-                                ">Rms Voltage L1-L2",
-                                ">Rms Voltage L1-N",
-                                ">Rms Voltage L2-L3",
-                                ">Rms Voltage L2-N",
-                                ">Rms Voltage L3-L1",
-                                ">Rms Voltage L3-N",
-                                ">Rms Voltage L4-N"
+                                "Frequency",
+                                "InstFrequency",
+                                "Rms Voltage L1-L2",
+                                "Rms Voltage L1-N",
+                                "Rms Voltage L2-L3",
+                                "Rms Voltage L2-N",
+                                "Rms Voltage L3-L1",
+                                "Rms Voltage L3-N",
+                                "Rms Voltage L4-N"
                             ],
                            [
                                 "SMXtimestamp",
                                 "SysDateTimeUTC",
-                                ">Frequency",
-                                ">InstFrequency",
-                                ">Rms Voltage L1-L2",
-                                ">Rms Voltage L1-N",
-                                ">Rms Voltage L2-L3",
-                                ">Rms Voltage L2-N",
-                                ">Rms Voltage L3-L1",
-                                ">Rms Voltage L3-N",
-                                ">Rms Voltage L4-N"
+                                "Frequency",
+                                "InstFrequency",
+                                "Rms Voltage L1-L2",
+                                "Rms Voltage L1-N",
+                                "Rms Voltage L2-L3",
+                                "Rms Voltage L2-N",
+                                "Rms Voltage L3-L1",
+                                "Rms Voltage L3-N",
+                                "Rms Voltage L4-N"
                            ]
                    ],
                    "db_name": "irldb",
