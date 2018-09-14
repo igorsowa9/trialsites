@@ -9,6 +9,8 @@ import json
 import logging
 import shutil
 
+from multiprocessing import Pool
+
 from settings import *
 
 
@@ -60,7 +62,7 @@ def sqlquery_make(tablename, labels, values):
 
 def on_message_writetodb(client, userdata, message):
 
-    print("Received: " + str(userdata))
+    # print("Received: " + str(userdata))
     lab_ts_utc = datetime.utcnow()
     json1_str = message.payload.decode("utf-8")
 
@@ -138,7 +140,7 @@ def json_to_sqlreq_irl(json1_data, trialsite_settings, lab_ts_utc):
     finally:
         conn.close()
     if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + 'Data written in DB.')
-    print("Data written in DB.")
+    print("Data (" + trialsite_settings['name'] + ") written in DB. SMX ts=" + str(smx_ts))
     return
 
 
@@ -181,11 +183,13 @@ def json_to_sqlreq_ita(json1_data, trialsite_settings, lab_ts_utc):
     finally:
         conn.close()
     if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + 'Data written in DB.')
-    print("Data written in DB.")
+    print("Data (" + trialsite_settings['name'] + ") written in DB. SMX ts=" + str(smx_ts))
     return
 
 
 def storedataAttempt(trialsite_settings):
+
+    # print("storeAttempt: " + str(trialsite_settings['name']))
 
     if trialsite_settings['name'] == 'irl001':
         vm = mqttcli.Client(userdata="irl001")
@@ -207,7 +211,7 @@ def storedataAttempt(trialsite_settings):
     for topic in trialsite_settings["mqtt_topics"]:
         vm.message_callback_add(topic[0], on_message_writetodb)
 
-    print("Waiting for data...")
+    # print("Waiting for data...")
     if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
     time.sleep(2)
     vm.loop_stop()
@@ -216,10 +220,15 @@ def storedataAttempt(trialsite_settings):
 def storedataOnce():
     while True:
         try:
-            storedataAttempt(irl001_settings)
-            storedataAttempt(ita005_settings)
-            storedataAttempt(ita006_settings)
-            storedataAttempt(ita007_settings)
+            pool = Pool(processes=4)
+            pool.apply_async(storedataAttempt, [irl001_settings])
+            pool.apply_async(storedataAttempt, [ita005_settings])
+            pool.apply_async(storedataAttempt, [ita006_settings])
+            pool.apply_async(storedataAttempt, [ita007_settings])
+            # storedataAttempt(irl001_settings)
+            # storedataAttempt(ita005_settings)
+            # storedataAttempt(ita006_settings)
+            # storedataAttempt(ita007_settings)
         except:
 
             print("Unexpected error:", sys.exc_info())
@@ -231,7 +240,7 @@ def storedataOnce():
 def storedataRepeatedly():
     while True:
         storedataOnce()
-        time.sleep(0.2)
+        time.sleep(1.5)
 
 # archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
 # shutil.copy("logfile.log", archive_name)
