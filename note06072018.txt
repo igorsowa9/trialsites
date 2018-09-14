@@ -1,0 +1,42 @@
+
+Nmap scan report for 10.12.0.18 - irl - ok
+Host is up (0.056s latency).
+Nmap scan report for 10.12.0.26 - irl003 - wrong format
+Host is up (0.059s latency).
+Nmap scan report for 10.12.0.38 - rom002 - constant test message
+Host is up (0.060s latency).
+Nmap scan report for 10.12.0.78 - irl005 - connection refused
+Host is up (0.075s latency).
+Nmap scan report for 10.12.0.94 - rom008 - nothing
+Host is up (0.96s latency).
+Nmap scan report for 10.12.0.102 - rom010
+Host is up (0.50s latency).
+Nmap scan report for 10.12.0.158 - rom020
+Host is up (0.059s latency).
+Nmap scan report for 10.12.0.170 - rom023 - connection refused
+Host is up (0.077s latency).
+Nmap scan report for 10.12.0.174 - rom024
+Host is up (0.063s latency).
+Nmap scan report for 10.12.0.178 - rom025
+Host is up (0.067s latency).
+Nmap scan report for 10.12.0.182 - rom026
+Host is up (0.076s latency).
+Nmap scan report for 10.12.0.202 - ita005 - OK
+Host is up (0.100s latency).
+Nmap scan report for 10.12.0.206 - ita006 - OK
+Host is up (0.12s latency).
+Nmap scan report for 10.12.0.210 - ita007
+Host is up (0.11s latency).
+Nmap scan report for 10.12.0.214 - ita008
+Host is up (0.12s latency).
+Nmap scan report for 10.12.0.1 - server
+
+update the storedata tosubscribe to the new content for example in the way:
+
+storing_settings = [{"ovpn": irl, "ip": "10.12.0.18", "topic": "SUCCESS/NORM/ESB001/wally1/Values", "dbname": "irldb", "table": "irldata_wallya1", "description": "first norm in irland"},
+		    {"ovpn": "ita005", "ip": "10.12.0.202", "topic": "", "dbname": "itadb", "table": "", "description": "tbd"},
+		    {"ovpn": "ita006", "ip": "10.12.0.206", "topic": "", "dbname": "itadb", "table": "", "description": "tbd"}]
+
+wallya1_topic = "SUCCESS/NORM/ESB001/wally1/Values"
+wallya2_topic = "SUCCESS/NORM/ESB001/wally2/Values"
+
