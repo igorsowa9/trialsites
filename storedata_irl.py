@@ -53,13 +53,6 @@ def sqlquery_make(tablename, labels, values):
     return SQLtext
 
 
-# def sqlquery_make_string(tablename, value):
-#     SQLtext = ""
-#     SQLtext += "INSERT INTO public." + str(tablename) + " (message_string, lab_ts) " + \
-#                "VALUES ('" + value + "' , '" + str(datetime.utcnow()) + "');"
-#     return SQLtext
-
-
 def on_message_writetodb(client, userdata, message):
 
     # print("Received: " + str(userdata))
@@ -211,9 +204,9 @@ def storedataAttempt(trialsite_settings):
     for topic in trialsite_settings["mqtt_topics"]:
         vm.message_callback_add(topic[0], on_message_writetodb)
 
-    print("Waiting for data...")
+    # print("Waiting for data...")
     if log_inf: logging.info(" When: " + str(datetime.now()) + " --- " + "Waiting for data...")
-    time.sleep(2)
+    time.sleep(4.9)
     vm.loop_stop()
 
 
@@ -225,8 +218,8 @@ def storedataOnce():
             # pool.apply_async(storedataAttempt, [ita005_settings])
             # pool.apply_async(storedataAttempt, [ita006_settings])
             # pool.apply_async(storedataAttempt, [ita007_settings])
-            # storedataAttempt(irl001_settings)
-            storedataAttempt(ita005_settings)
+            storedataAttempt(irl001_settings)
+            # storedataAttempt(ita005_settings)
             # storedataAttempt(ita006_settings)
             # storedataAttempt(ita007_settings)
         except:
@@ -240,7 +233,7 @@ def storedataOnce():
 def storedataRepeatedly():
     while True:
         storedataOnce()
-        time.sleep(1.5)
+        time.sleep(0.1)
 
 # archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
 # shutil.copy("logfile.log", archive_name)

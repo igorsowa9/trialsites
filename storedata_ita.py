@@ -227,8 +227,8 @@ def storedataOnce():
             # pool.apply_async(storedataAttempt, [ita007_settings])
             # storedataAttempt(irl001_settings)
             storedataAttempt(ita005_settings)
-            # storedataAttempt(ita006_settings)
-            # storedataAttempt(ita007_settings)
+            storedataAttempt(ita006_settings)
+            storedataAttempt(ita007_settings)
         except:
 
             print("Unexpected error:", sys.exc_info())
@@ -240,7 +240,7 @@ def storedataOnce():
 def storedataRepeatedly():
     while True:
         storedataOnce()
-        time.sleep(1.5)
+        time.sleep(0.1)
 
 # archive_name = "logarchive_" + str(datetime.now().isoformat()) + ".log"
 # shutil.copy("logfile.log", archive_name)
