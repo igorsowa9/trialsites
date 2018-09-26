@@ -231,10 +231,10 @@ def storedataOnce():
             # pool.apply_async(storedataAttempt, [ita006_settings])
             # pool.apply_async(storedataAttempt, [ita007_settings])
             # storedataAttempt(irl001_settings)
-            storedataAttempt(ita005_settings)
+            # storedataAttempt(ita005_settings)
             storedataAttempt(ita006_settings)
-            storedataAttempt(ita007_settings)
-            storedataAttempt(ita008_settings)
+            # storedataAttempt(ita007_settings)
+            # storedataAttempt(ita008_settings)
         except:
 
             print("Unexpected error:", sys.exc_info())

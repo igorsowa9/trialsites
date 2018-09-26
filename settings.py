@@ -1,11 +1,12 @@
 import copy
 
 db_ip = "10.12.0.1"  # "137.226.133.186"
+db_ip2 = "10.13.0.1"  # "137.226.133.211"
 
 log_inf = True
 
 ita005_settings = {"name": "ita005",
-                   "ip": "10.12.0.202",
+                   "ip": "10.13.0.62",
                    "mqtt_topics": [('#', 0)],
                    "msg_labels":
                        [
@@ -51,16 +52,25 @@ ita005_settings = {"name": "ita005",
                    }
 
 ita006_settings = copy.deepcopy(ita005_settings)
-ita006_settings.update({'ip': "10.12.0.206"})
+# ita006_settings.update({'ip': "10.12.0.206"})
+ita006_settings.update({'ip': "10.13.0.66"})
 ita006_settings.update({"name": "ita006"})
 ita006_settings.update({"db_tables": ["ita006"]})
 ita006_settings.update({"db_tables_string": ["ita006_string"]})
 
 ita007_settings = copy.deepcopy(ita005_settings)
-ita007_settings.update({'ip': "10.12.0.210"})
+# ita007_settings.update({'ip': "10.12.0.210"})
+ita007_settings.update({'ip': "10.13.0.70"})
 ita007_settings.update({"name": "ita007"})
 ita007_settings.update({"db_tables": ["ita007"]})
 ita007_settings.update({"db_tables_string": ["ita007_string"]})
+
+ita008_settings = copy.deepcopy(ita005_settings)
+# ita008_settings.update({'ip': "10.12.0.214"})
+ita008_settings.update({'ip': "10.13.0.74"})
+ita008_settings.update({"name": "ita008"})
+ita008_settings.update({"db_tables": ["ita008"]})
+ita008_settings.update({"db_tables_string": ["ita008_string"]})
 
 irl001_settings = {"name": "irl001",
                    "ip": "10.12.0.18",
